@@ -17,6 +17,7 @@
   --shadow-sm:0 1px 2px rgba(20,30,40,.06);
   --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei","Hiragino Sans GB",sans-serif;
   --math:"Cambria Math",Cambria,"Times New Roman",serif;
+  --wrap:1600px;
 }
 html[data-theme="dark"]{
   --bg:#11151A; --bg2:#0D1116; --card:#191F26; --card2:#212932;
@@ -61,7 +62,7 @@ code.fx{font-family:var(--math);font-style:italic;background:var(--primary-soft)
 .side-scroll{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:16px;margin:0 -6px;padding:0 6px 6px}
 .side-scroll::-webkit-scrollbar{width:5px}
 .side-scroll::-webkit-scrollbar-thumb{background:var(--line);border-radius:3px}
-.main{flex:1;min-width:0;padding:26px 34px 70px;max-width:1080px}
+.main{flex:1;min-width:0;padding:26px 34px 70px;max-width:var(--wrap);margin:0 auto}
 .view{display:none;animation:fade .26s ease}
 .view.on{display:block}
 @keyframes fade{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
@@ -413,8 +414,8 @@ html[data-theme="dark"] .opt.wrong i{color:#0F1419}
 html[data-theme="dark"] .fb:hover{color:#0F1419}
 .fb.on{border-bottom-style:solid;border-bottom-color:var(--green);background:var(--green-soft);
   color:var(--green);font-weight:650;cursor:default}
-.ffoot{display:flex;align-items:center;gap:12px;margin-top:12px;padding-top:10px;
-  border-top:1px dashed var(--line)}
+.ffoot{display:flex;align-items:center;gap:10px;margin-top:12px;padding-top:10px;
+  border-top:1px dashed var(--line);flex-wrap:wrap}
 .ffoot .hint{font-size:11.5px;color:var(--ink3)}
 .ffoot .chk{margin-left:auto}
 
@@ -445,6 +446,43 @@ html[data-theme="dark"] .fb:hover{color:#0F1419}
 .pane.recite{margin-top:12px}
 .pcard.masked .pane{filter:blur(6px);cursor:pointer}
 .pcard .tactions{margin-top:14px;padding-top:12px}
+
+/* 收藏：题干标红 + 置顶块 */
+.fcard.fav{border-color:var(--red-line)}
+.fcard.fav .fstem{color:var(--red)}
+.fcard.fav .fno{background:var(--red-soft);color:var(--red)}
+.pcard.fav{border-color:var(--red-line)}
+.pcard.fav .ptitle b{color:var(--red)}
+.pcard.fav .pno{background:var(--red-soft);color:var(--red)}
+.star{border:1px solid var(--line);background:var(--card);color:var(--ink3);font:inherit;
+  font-size:12px;line-height:1.6;padding:4px 11px;border-radius:8px;cursor:pointer;
+  transition:.15s;white-space:nowrap;flex:none}
+.star:hover{border-color:var(--amber);color:var(--amber)}
+.star.on{background:var(--amber-soft);border-color:var(--amber);color:var(--amber);font-weight:650}
+.favblk{margin:18px 0 6px}
+.favblk > .ph2{border-left-color:var(--red)}
+.favblk > .ph3{color:var(--ink3)}
+.badge.edited{background:var(--primary-soft);color:var(--primary)}
+.editgrid{display:flex;flex-direction:column;gap:8px;margin-bottom:11px}
+.editrow{display:flex;align-items:center;gap:9px}
+.editrow > span{flex:0 0 54px;font-size:11.5px;font-weight:650;color:var(--ink3);letter-spacing:.3px}
+.editrow > input{flex:1;min-width:0;border:1px solid var(--line);border-radius:9px;background:var(--card);
+  color:var(--ink);font:inherit;font-size:13.5px;padding:7px 10px;outline:none}
+.editrow > input:focus{border-color:var(--primary)}
+
+/* ---------- 宽屏（≥1520px）：用满横向空间 ---------- */
+@media (min-width:1520px){
+  .main{padding:32px 44px 90px}
+  .flist:not(#fillList),
+  .plist:not(#shortList):not(#termList){
+    display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;align-items:start}
+  #v-quiz,#v-think,#v-know{max-width:1120px;margin:0 auto}
+  .bigwrap{max-width:1000px;margin:0 auto}
+  .pbar .search{flex:0 0 320px}
+}
+@media (min-width:2100px){
+  .flist:not(#fillList){grid-template-columns:repeat(3,minmax(0,1fr))}
+}
 
 /* ---------- 移动端 ---------- */
 .mobar{display:none}
@@ -487,7 +525,7 @@ html[data-theme="dark"] .fb:hover{color:#0F1419}
   .pbody{padding:2px 13px 15px}
   .pstat{min-width:400px}
 }
-@media print{.side,.mobar,.qbar,.thinkbar,.pbar,.banswer,.bpager,.tactions,.ffoot,.ptabs{display:none}.main{padding:0}}
+@media print{.side,.mobar,.qbar,.thinkbar,.pbar,.banswer,.bpager,.tactions,.ffoot,.ptabs,.star,.editbox{display:none}.main{padding:0}}
 </style>
 </head>
 <body>
@@ -773,7 +811,8 @@ function renderNavFill(box){
       '</div></div>' +
     '<div class="grp"><h5>掌握进度</h5>' +
       '<div class="stat"><span>已掌握 <b>' + done + '</b> / ' + total + '</span>' +
-        '<span>已对答案 <b>' + shown + '</b></span></div>' +
+        '<span>已对答案 <b>' + shown + '</b></span>' +
+        '<span>已收藏 <b>' + favCount('fill') + '</b></span></div>' +
       '<div class="progress"><i style="width:' + (total ? done / total * 100 : 0) + '%"></i></div>' +
     '</div>' +
     '<div class="grp"><h5>快捷</h5><div class="chips">' +
@@ -799,7 +838,8 @@ function renderNavPred(k, box){
           '><b>' + strip(c.short) + '</b><em>' + c.count + '</em></button>').join('') +
       '</div></div>' +
     '<div class="grp"><h5>掌握进度</h5>' +
-      '<div class="stat"><span>已掌握 <b>' + done + '</b> / ' + total + '</span></div>' +
+      '<div class="stat"><span>已掌握 <b>' + done + '</b> / ' + total + '</span>' +
+        '<span>已收藏 <b>' + favCount(k) + '</b></span></div>' +
       '<div class="progress"><i style="width:' + (total ? done / total * 100 : 0) + '%"></i></div>' +
     '</div>' +
     '<div class="grp"><h5>备份</h5><div class="chips">' +
@@ -1347,28 +1387,68 @@ function bindPager(){
    ========================================================= */
 const fillById = id => FILL.find(q => q.id === id);
 
+/* —— 收藏 / 编辑（三份题型预测共用） —— */
+function bagOf(kind){ return kind === 'fill' ? FILLS : PREDS; }
+function favOn(kind, id){ const st = bagOf(kind)[id]; return !!(st && st.fav); }
+function toggleFav(kind, id){
+  const bag = bagOf(kind);
+  const st = bag[id] = bag[id] || {};
+  st.fav = !st.fav;
+  if (st.fav) st.favT = Date.now(); else delete st.favT;
+  store.set(kind === 'fill' ? 'sq_fill_v1' : 'sq_pred_v1', bag);
+  return st.fav;
+}
+function favSort(list, kind){
+  const bag = bagOf(kind);
+  return list.filter(q => bag[q.id] && bag[q.id].fav)
+    .sort((a, b) => ((bag[b.id].favT || 0) - (bag[a.id].favT || 0)));
+}
+function favCount(kind, list){
+  const bag = bagOf(kind);
+  const arr = list || (kind === 'fill' ? FILL : PCFG[kind].items);
+  return arr.filter(q => bag[q.id] && bag[q.id].fav).length;
+}
+/* 段落级合并：未改动的段落保留原始 HTML（公式上下标不丢） */
+function mergeDetail(orig, text){
+  const plain = orig.map(strip);
+  const lines = text.split(/\n+/).map(x => x.trim()).filter(Boolean);
+  const same = lines.length === plain.length && lines.every((l, i) => l === plain[i].trim());
+  if (same) return null;
+  return lines.map((l, i) => (i < plain.length && l === plain[i].trim()) ? orig[i] : esc(l));
+}
+function mergeRecite(orig, text){
+  const t = text.trim();
+  if (t === strip(orig || '').trim()) return null;
+  return t ? esc(t) : '';
+}
+
 function fillStemHtml(q){
   const st = FILLS[q.id] || {};
   return q.stem.replace(/@@(\d+)@@/g, (m, i) => {
     const k = +i;
     const on = st.shown || (st.blanks && st.blanks[k]);
+    const ans = (st.ans && st.ans[k] != null) ? st.ans[k] : (q.answers[k] || '');
     return on
-      ? '<span class="fb on">' + (q.answers[k] || '') + '</span>'
+      ? '<span class="fb on">' + ans + '</span>'
       : '<button class="fb" data-i="' + k + '" title="点此挖开这一空">＿ ＿ ＿</button>';
   });
 }
 
 function fillCardHtml(q){
   const st = FILLS[q.id] || {};
-  const done = !!st.done, shown = !!st.shown;
-  return '<article class="fcard' + (done ? ' done' : '') + '" data-id="' + q.id + '">' +
+  const done = !!st.done, shown = !!st.shown, fav = !!st.fav;
+  const edited = !!(st.ans && Object.keys(st.ans).length);
+  return '<article class="fcard' + (done ? ' done' : '') + (fav ? ' fav' : '') + '" data-id="' + q.id + '">' +
     '<div class="frow"><span class="fno">' + String(q.no).padStart(2, '0') + '</span>' +
-      '<div class="fstem">' + (q.repeat ? '<span class="badge">重复</span>' : '') + fillStemHtml(q) + '</div></div>' +
+      '<div class="fstem">' + (q.repeat ? '<span class="badge">重复</span>' : '') +
+        (edited ? '<span class="badge edited">已改</span>' : '') + fillStemHtml(q) + '</div></div>' +
     '<div class="ffoot">' +
       '<button class="btn" data-act="toggle">' + (shown ? '隐藏答案' : '显示答案') + '</button>' +
+      '<button class="btn" data-act="edit">编辑答案</button>' +
+      '<button class="star' + (fav ? ' on' : '') + '" data-act="fav">' + (fav ? '★ 已收藏' : '☆ 收藏') + '</button>' +
       '<span class="hint">共 ' + q.n + ' 空 · 可逐个点空位自测</span>' +
       '<label class="chk"><input type="checkbox" data-act="done"' + (done ? ' checked' : '') + '>已掌握</label>' +
-    '</div></article>';
+    '</div><div class="editbox hide"></div></article>';
 }
 
 function fillStat(){
@@ -1378,14 +1458,15 @@ function fillStat(){
     const a = sub.filter(q => FILLS[q.id] && FILLS[q.id].shown).length;
     const d = sub.filter(q => FILLS[q.id] && FILLS[q.id].done).length;
     return '<tr><td>' + g.name + '</td><td>' + g.from + '–' + g.to + '</td><td>' + sub.length +
-      '</td><td>' + a + '</td><td>' + d + '</td><td>' + Math.round(d / sub.length * 100) + '%</td></tr>';
+      '</td><td>' + a + '</td><td>' + d + '</td><td>' + favCount('fill', sub) +
+      '</td><td>' + Math.round(d / sub.length * 100) + '%</td></tr>';
   }).join('');
   const a = cnt('shown'), d = cnt('done');
   $('#fillStat').innerHTML =
-    '<thead><tr><th>分组</th><th>题号</th><th>题数</th><th>已显示答案</th><th>已掌握</th><th>掌握进度</th></tr></thead>' +
+    '<thead><tr><th>分组</th><th>题号</th><th>题数</th><th>已显示答案</th><th>已掌握</th><th>已收藏</th><th>掌握进度</th></tr></thead>' +
     '<tbody>' + rows +
       '<tr><th>合计</th><td>1–42</td><th>' + FILL.length + '</th><th>' + a + '</th><th>' + d +
-      '</th><th>' + Math.round(d / FILL.length * 100) + '%</th></tr></tbody>';
+      '</th><th>' + favCount('fill') + '</th><th>' + Math.round(d / FILL.length * 100) + '%</th></tr></tbody>';
 }
 
 function renderFill(){
@@ -1393,10 +1474,17 @@ function renderFill(){
   const list = FILL.filter(q =>
     (FS.grp === 'all' || String(q.group) === FS.grp) &&
     (!kw || (strip(q.stem) + ' ' + q.answers.map(strip).join(' ')).indexOf(kw) >= 0));
+  const favs = favSort(list, 'fill');
+  const rest = list.filter(q => !favOn('fill', q.id));
   let html = '';
+  if (favs.length){
+    html += '<section class="favblk"><h2 class="ph2">★ 收藏<span class="ph2n">' + favs.length +
+      ' 题 · 已置顶</span></h2><h3 class="ph3">点「★ 已收藏」可取消，取消后回到原分组</h3>' +
+      '<div class="flist">' + favs.map(fillCardHtml).join('') + '</div></section>';
+  }
   const groups = FS.grp === 'all' ? FILLG : FILLG.filter(g => String(g.key) === FS.grp);
   groups.forEach(g => {
-    const sub = list.filter(q => q.group === g.key);
+    const sub = rest.filter(q => q.group === g.key);
     if (!sub.length) return;
     html += '<h2 class="ph2">' + g.name + '<span class="ph2n">第 ' + g.from + '–' + g.to +
       ' 题 · ' + sub.length + ' 道</span></h2>' +
@@ -1411,6 +1499,14 @@ $('#fillList').addEventListener('click', e => {
   const card = e.target.closest('.fcard'); if (!card) return;
   const id = card.dataset.id, q = fillById(id);
   const st = FILLS[id] = FILLS[id] || {};
+
+  if (e.target.closest('[data-act="fav"]')){
+    const on = toggleFav('fill', id);
+    renderFill(); renderNav2();
+    toast(on ? '已收藏，置顶到最上方' : '已取消收藏');
+    return;
+  }
+  if (e.target.closest('[data-act="edit"]')){ openFillEditor(card, q); return; }
 
   const blank = e.target.closest('button.fb');
   if (blank){
@@ -1434,6 +1530,52 @@ $('#fillList').addEventListener('click', e => {
     fillStat(); if (CURTAB === 'fill') renderNav2();
   }
 });
+
+function openFillEditor(card, q){
+  const box = $('.editbox', card);
+  if (!box || !box.classList.contains('hide')) return;
+  const st = FILLS[q.id] || {};
+  let rows = '';
+  for (let i = 0; i < q.n; i++){
+    const cur = (st.ans && st.ans[i] != null) ? st.ans[i] : (q.answers[i] || '');
+    rows += '<div class="editrow"><span>第 ' + (i + 1) + ' 空</span>' +
+      '<input class="fi" data-i="' + i + '" value="' + esc(strip(cur)) + '"></div>';
+  }
+  card.classList.add('editing');
+  box.innerHTML =
+    '<label>修改答案（每空一条，只存在本机）</label>' +
+    '<div class="editgrid">' + rows + '</div>' +
+    '<div class="editfoot">' +
+      '<button class="btn primary" data-act="fsave">保存</button>' +
+      '<button class="btn" data-act="fcancel">取消</button>' +
+      '<button class="btn" data-act="freset"' + (st.ans ? '' : ' disabled') + '>恢复原文</button>' +
+      '<span class="hint">没改动的空保留原格式</span>' +
+    '</div>';
+  box.classList.remove('hide');
+  const first = $('.fi', box);
+  if (first){ first.focus(); first.select(); }
+
+  $('[data-act="fsave"]', box).onclick = () => {
+    const map = {};
+    $$('.fi', box).forEach(inp => {
+      const i = +inp.dataset.i, v = inp.value.trim();
+      if (v !== strip(q.answers[i] || '').trim()) map[i] = esc(v);
+    });
+    const s2 = FILLS[q.id] = FILLS[q.id] || {};
+    if (Object.keys(map).length) s2.ans = map; else delete s2.ans;
+    s2.shown = true;
+    store.set('sq_fill_v1', FILLS);
+    renderFill(); renderNav2();
+    toast(Object.keys(map).length ? '已保存修改' : '与原文一致，未产生修改');
+  };
+  $('[data-act="fcancel"]', box).onclick = () => { renderFill(); };
+  $('[data-act="freset"]', box).onclick = () => {
+    const s2 = FILLS[q.id] = FILLS[q.id] || {};
+    delete s2.ans;
+    store.set('sq_fill_v1', FILLS);
+    renderFill(); renderNav2(); toast('已恢复原文');
+  };
+}
 $('#fillSearch').addEventListener('input', e => { FS.kw = e.target.value; renderFill(); });
 $('#fillShowAll').onclick = () => {
   FILL.forEach(q => { FILLS[q.id] = FILLS[q.id] || {}; FILLS[q.id].shown = true; FILLS[q.id].blanks = {}; });
@@ -1449,31 +1591,54 @@ $('#fillHideAll').onclick = () => {
    ========================================================= */
 const predById = (k, id) => PCFG[k].items.find(q => q.id === id);
 
+function predDetailHtml(k, q){
+  const st = PREDS[q.id] || {};
+  const arr = (st.detail && st.detail.length) ? st.detail : q.detail;
+  return arr.map(x => '<p>' + x + '</p>').join('');
+}
+function predReciteHtml(q){
+  const st = PREDS[q.id] || {};
+  if (typeof st.recite === 'string' && st.recite.trim()) return st.recite;
+  return q.recite || '';
+}
+function predEdited(q){
+  const st = PREDS[q.id] || {};
+  return !!((st.detail && st.detail.length) || (typeof st.recite === 'string' && st.recite.trim()));
+}
+
 function predCardHtml(k, q){
   const S = PS[k], st = PREDS[q.id] || {};
   const open = !!S.open[q.id], done = !!st.done, tab = st.tab || '';
+  const fav = !!st.fav, edited = predEdited(q);
   const ch = PCFG[k].ch[q.ci] || { short:'全部' };
   const showAns = open && !!tab;
   let pane;
   if (showAns && tab === 'detail')
-    pane = '<div class="pane">' + q.detail.map(x => '<p>' + x + '</p>').join('') + '</div>';
+    pane = '<div class="pane">' + predDetailHtml(k, q) + '</div>';
   else if (showAns && tab === 'recite')
-    pane = '<div class="pane recite"><span class="rz">背诵版</span><p>' + q.recite + '</p></div>';
+    pane = '<div class="pane recite"><span class="rz">背诵版</span><p>' + predReciteHtml(q) + '</p></div>';
   else
     pane = '<div class="pane"><p class="hint">点上方标签查看对应答案；详细答案与背诵版互不混排，先背后展开。</p></div>';
 
-  return '<article class="pcard' + (open ? ' open' : '') + (done ? ' done' : '') +
+  return '<article class="pcard' + (open ? ' open' : '') + (done ? ' done' : '') + (fav ? ' fav' : '') +
       (S.self && showAns ? ' masked' : '') + '" data-id="' + q.id + '">' +
     '<div class="pcard-h"><span class="pno">' + String(q.no).padStart(2, '0') + '</span>' +
-      '<div class="ptitle"><b>' + strip(q.title) + '</b><em>' + strip(ch.short) + ' · ' +
-        (done ? '已掌握' : '未标记') + '</em></div><span class="caret"></span></div>' +
+      '<div class="ptitle"><b>' + strip(q.title) +
+        (edited ? '<span class="badge edited">已改</span>' : '') + '</b><em>' + strip(ch.short) + ' · ' +
+        (done ? '已掌握' : '未标记') + '</em></div>' +
+      '<button class="star' + (fav ? ' on' : '') + '" data-act="fav">' + (fav ? '★ 已收藏' : '☆ 收藏') + '</button>' +
+      '<span class="caret"></span></div>' +
     '<div class="pbody">' +
       '<div class="ptabs">' +
         '<button data-act="tab" data-v="detail"' + (tab === 'detail' ? ' class="on"' : '') + '>详细答案</button>' +
         '<button data-act="tab" data-v="recite"' + (tab === 'recite' ? ' class="on"' : '') + '>背诵版</button>' +
       '</div>' + pane +
-      '<div class="tactions"><label class="chk"><input type="checkbox" data-act="done"' +
-        (done ? ' checked' : '') + '>已掌握</label></div>' +
+      '<div class="tactions">' +
+        '<button class="btn" data-act="edit">编辑答案</button>' +
+        '<button class="btn" data-act="restore"' + (edited ? '' : ' disabled') + '>恢复原文</button>' +
+        '<label class="chk"><input type="checkbox" data-act="done"' +
+          (done ? ' checked' : '') + '>已掌握</label>' +
+      '</div>' +
     '</div></article>';
 }
 
@@ -1485,14 +1650,16 @@ function predStat(k){
     const op = sub.filter(q => PS[k].open[q.id]).length;
     const d = doneOf(sub);
     return '<tr><td>' + strip(c.short) + '</td><td>' + sub.length + '</td><td>' + op +
-      '</td><td>' + d + '</td><td>' + Math.round(d / sub.length * 100) + '%</td></tr>';
+      '</td><td>' + d + '</td><td>' + favCount(k, sub) + '</td><td>' +
+      Math.round(d / sub.length * 100) + '%</td></tr>';
   }).join('');
   $('#' + k + 'Stat').innerHTML =
-    '<thead><tr><th>分节</th><th>题数</th><th>已展开</th><th>已掌握</th><th>掌握进度</th></tr></thead>' +
+    '<thead><tr><th>分节</th><th>题数</th><th>已展开</th><th>已掌握</th><th>已收藏</th><th>掌握进度</th></tr></thead>' +
     '<tbody>' + rows +
       '<tr><th>合计</th><th>' + cfg.items.length + '</th><th>' +
       cfg.items.filter(q => PS[k].open[q.id]).length + '</th><th>' + doneOf(cfg.items) +
-      '</th><th>' + Math.round(doneOf(cfg.items) / cfg.items.length * 100) + '%</th></tr></tbody>';
+      '</th><th>' + favCount(k) + '</th><th>' +
+      Math.round(doneOf(cfg.items) / cfg.items.length * 100) + '%</th></tr></tbody>';
 }
 
 function renderPred(k){
@@ -1500,10 +1667,18 @@ function renderPred(k){
   const list = cfg.items.filter(q =>
     (S.sec === 'all' || q.ci === +S.sec.slice(1)) &&
     (!kw || (strip(q.title) + ' ' + q.detail.map(strip).join(' ') + ' ' + strip(q.recite)).indexOf(kw) >= 0));
+  const favs = favSort(list, k);
+  const rest = list.filter(q => !favOn(k, q.id));
   let html = '';
+  if (favs.length){
+    const unit = k === 'term' ? ' 条' : ' 题';
+    html += '<section class="favblk"><h2 class="ph2">★ 收藏<span class="ph2n">' + favs.length +
+      unit + ' · 已置顶</span></h2><h3 class="ph3">点标题右侧「★ 已收藏」可取消，取消后回到原分节</h3>' +
+      '<div class="plist">' + favs.map(q => predCardHtml(k, q)).join('') + '</div></section>';
+  }
   const secs = S.sec === 'all' ? cfg.ch.map((c, i) => i) : [+S.sec.slice(1)];
   secs.forEach(ci => {
-    const sub = list.filter(q => q.ci === ci);
+    const sub = rest.filter(q => q.ci === ci);
     if (!sub.length) return;
     html += '<h2 class="ph2">' + strip(cfg.ch[ci].short) +
       '<span class="ph2n">' + sub.length + ' 题 · 按考纲与公开题库命中的重合考点</span></h2>' +
@@ -1518,7 +1693,25 @@ function renderPred(k){
   const S = PS[k];
   $('#' + k + 'List').addEventListener('click', e => {
     const card = e.target.closest('.pcard'); if (!card) return;
-    const id = card.dataset.id, S = PS[k];
+    const id = card.dataset.id, q = predById(k, id);
+    const S = PS[k];
+
+    if (e.target.closest('[data-act="fav"]')){
+      const on = toggleFav(k, id);
+      renderPred(k); renderNav2();
+      toast(on ? '已收藏，置顶到最上方' : '已取消收藏');
+      return;
+    }
+    if (e.target.closest('[data-act="edit"]')){ openPredEditor(k, card, q); return; }
+    if (e.target.closest('[data-act="restore"]')){
+      if (!predEdited(q)) return;
+      if (!confirm('把这一条的答案恢复成原文？你的修改会被删除。')) return;
+      const st = PREDS[id] = PREDS[id] || {};
+      delete st.detail; delete st.recite;
+      store.set('sq_pred_v1', PREDS);
+      S.open[id] = true; renderPred(k); renderNav2(); toast('已恢复原文');
+      return;
+    }
 
     const tabBtn = e.target.closest('.ptabs button');
     if (tabBtn){
@@ -1536,6 +1729,55 @@ function renderPred(k){
     if (e.target.closest('.pane') && S.self){ card.classList.remove('masked'); return; }
     if (e.target.closest('.pcard-h')){ S.open[id] = !S.open[id]; renderPred(k); }
   });
+
+  function openPredEditor(kk, card, q){
+    const st = PREDS[q.id] || {};
+    PS[kk].open[q.id] = true;
+    renderPred(kk);
+    const c2 = $('#' + kk + 'List .pcard[data-id="' + q.id + '"]');
+    if (!c2) return;
+    const body = $('.pbody', c2);
+    const box = document.createElement('div');
+    box.className = 'editbox';
+    const detailText = ((st.detail && st.detail.length) ? st.detail : q.detail).map(strip).join('\n\n');
+    const reciteText = strip((typeof st.recite === 'string' && st.recite.trim()) ? st.recite : (q.recite || ''));
+    box.innerHTML =
+      '<label>详细答案（每段一行，空行分段）</label>' +
+      '<textarea class="ta1" rows="10"></textarea>' +
+      '<label>背诵版</label>' +
+      '<textarea class="ta2" rows="3"></textarea>' +
+      '<div class="editfoot">' +
+        '<button class="btn primary" data-act="psave">保存</button>' +
+        '<button class="btn" data-act="pcancel">取消</button>' +
+        '<button class="btn" data-act="preset">恢复原文</button>' +
+        '<span class="hint">只存在本机；没改动的段落保留原格式</span>' +
+      '</div>';
+    body.appendChild(box);
+    const ta1 = $('.ta1', box), ta2 = $('.ta2', box);
+    ta1.value = detailText; ta2.value = reciteText;
+    ta1.focus();
+    c2.scrollIntoView({ block: 'center' });
+
+    $('[data-act="psave"]', box).onclick = () => {
+      const merged = mergeDetail(q.detail, ta1.value);
+      const rc = mergeRecite(q.recite, ta2.value);
+      const s2 = PREDS[q.id] = PREDS[q.id] || {};
+      if (merged) s2.detail = merged; else delete s2.detail;
+      if (rc === null) delete s2.recite; else s2.recite = rc;
+      if (!s2.tab) s2.tab = 'detail';
+      store.set('sq_pred_v1', PREDS);
+      renderPred(kk); renderNav2();
+      toast((merged || rc !== null) ? '已保存修改' : '与原文一致，未产生修改');
+    };
+    $('[data-act="pcancel"]', box).onclick = () => { renderPred(kk); };
+    $('[data-act="preset"]', box).onclick = () => {
+      const s2 = PREDS[q.id] = PREDS[q.id] || {};
+      delete s2.detail; delete s2.recite;
+      store.set('sq_pred_v1', PREDS);
+      renderPred(kk); renderNav2(); toast('已恢复原文');
+    };
+  }
+
   $('#' + k + 'Search').addEventListener('input', e => { S.kw = e.target.value; renderPred(k); });
   $('#' + k + 'ExpandAll').onclick = () => {
     PCFG[k].items.forEach(q => { S.open[q.id] = true; }); renderPred(k);
